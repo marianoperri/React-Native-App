@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -9,50 +9,56 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {FAV_KEY} from '../../Consts/consts';
+import {MovieContext} from '../../Context/MovieContext';
+import SafeAreaView from 'react-native-safe-area-view';
+import {localFavorites} from '../../Reducer/MovieReducer';
 
 const Favorites = () => {
-  const [favorites, setfavorites] = useState({fav: []});
+  const {state, dispatch} = useContext(MovieContext);
+
   const [refresh, setRefresh] = useState(false);
-
-  const loadFavorites = async () => {
-    let favorites = [];
-    try {
-      favorites = await AsyncStorage.getItem(FAV_KEY);
-
-      setfavorites(JSON.parse(favorites));
-    } catch (err) {
-      console.log(err);
-    }
+  const delFavorite = id => {
+    const action = {
+      type: 'del_favorites',
+      payload: id,
+    };
+    dispatch(action);
   };
   useEffect(() => {
-    loadFavorites();
+    dispatch(localFavorites());
+    console.log(state.favorites);
+  }, [state]);
+
+  useEffect(() => {
+    dispatch(localFavorites());
   }, [refresh]);
 
   return (
-    <View>
-      <TouchableOpacity onPress={() => setRefresh(!refresh)}>
-        <Text>Favorites</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => AsyncStorage.clear()}>
-        <Text>Clean</Text>
-      </TouchableOpacity>
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={favorites}
-        keyExtractor={fav => fav.imdbID}
-        renderItem={({item}) => {
-          return (
-            <View>
-              <TouchableOpacity>
-                <Text style={styles.title}>{item.Title}</Text>
-                <Image style={styles.image} source={{uri: item.Poster}} />
-              </TouchableOpacity>
-            </View>
-          );
-        }}
-      />
-    </View>
+    <SafeAreaView style={{flex: 1}}>
+      <View>
+        <TouchableOpacity onPress={() => setRefresh(!refresh)}>
+          <Text>Favorites</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => AsyncStorage.clear()}>
+          <Text>Clean</Text>
+        </TouchableOpacity>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={state.favorites}
+          keyExtractor={fav => fav.imdbID}
+          renderItem={({item}) => {
+            return (
+              <View>
+                <TouchableOpacity onPress={() => delFavorite(item.imdbID)}>
+                  <Text style={styles.title}>{item.Title}</Text>
+                  <Image style={styles.image} source={{uri: item.Poster}} />
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 

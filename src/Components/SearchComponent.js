@@ -6,18 +6,14 @@ import {
   TextInput,
   StyleSheet,
 } from 'react-native';
-import {searchMovie} from '../Api/Api';
 
-const SearchComponent = ({results}) => {
+import {searchMovies} from '../Reducer/MovieReducer';
+
+const SearchComponent = ({dispatch}) => {
   const [text, setText] = useState('');
 
   const onSearch = async () => {
-    try {
-      const res = await searchMovie(`s=${text}`);
-      results({movieResults: res});
-    } catch (err) {
-      console.log('error ' + err);
-    }
+    searchMovies(text, dispatch);
   };
 
   return (

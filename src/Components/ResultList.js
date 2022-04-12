@@ -7,37 +7,26 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {MovieContext} from '../Context/MovieContext';
-import {FAV_KEY} from '../Consts/consts';
+import {addMovie} from '../Reducer/MovieReducer';
 
 const ResulList = () => {
-  const {movie} = useContext(MovieContext);
-  const addFavorites = async movieAdd => {
-    let favorites = [];
-    const res = await AsyncStorage.getItem(FAV_KEY);
-    favorites = JSON.parse(res);
-    if (favorites === null) {
-      favorites = [];
-      favorites.push(movieAdd);
-    } else {
-      favorites.push(movieAdd);
-    }
-    try {
-      await AsyncStorage.setItem(FAV_KEY, JSON.stringify(favorites));
-    } catch (err) {
-      console.log(err);
-    }
+  const {state, dispatch} = useContext(MovieContext);
+
+  const addFavorites = movieAdd => {
+    if (!state.favorites.find(movie => movie === movieAdd))
+      state.favorites.push(movieAdd);
+    addMovie(state.favorites, dispatch);
   };
 
-  if (!movie.movieResults) {
+  if (!state.movieResults) {
     return null;
   }
   return (
     <View>
       <FlatList
         showsVerticalScrollIndicator={false}
-        data={movie.movieResults}
+        data={state.movieResults}
         keyExtractor={results => results.imdbID}
         renderItem={({item}) => {
           return (
